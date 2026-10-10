@@ -155,3 +155,5 @@ if (n.textContent.trim().indexOf('去绑定') >= 0) { ... }
 更多可直接复制的 JS 片段和页面结构细节见 `references/js-snippets.md`。
 
 **草稿箱任务**（把文案批量灌进公众号草稿箱、传配图）：架构与带货助手完全不同（普通 DOM、token 机制、只保存不发表），完整流程见 `references/mp-draftbox.md`。
+
+**金句卡生产**（小绿书配图主力）：本地 PIL 渲染模板 `tools/quote_card.py`，设计规格、排版算法与生图提示词模板见 `references/quote-card.md`。金句卡是设计图，不走生图模型、无需 AI 标注。
