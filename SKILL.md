@@ -156,4 +156,4 @@ if (n.textContent.trim().indexOf('去绑定') >= 0) { ... }
 
 **草稿箱任务**（把文案批量灌进公众号草稿箱、传配图）：架构与带货助手完全不同（普通 DOM、token 机制、只保存不发表），完整流程见 `references/mp-draftbox.md`。
 
-**金句卡生产**（小绿书配图主力）：本地 PIL 渲染模板 `tools/quote_card.py`，设计规格、排版算法与生图提示词模板见 `references/quote-card.md`。金句卡是设计图，不走生图模型、无需 AI 标注。
+**金句卡生产**（小绿书配图主力）：**Gemini AI 生图为主力**（用户实测质感最佳；提示词结构、逐字核对清单、叙事法则见 `references/quote-card.md`，发布须勾「内容由 AI 生成」），本地 PIL 渲染 `tools/quote_card.py` 为备用（文字 100% 准确、免 AI 标注）。品牌字统一为「**鲸默阅读**」，slogan「每天读一点 · 把书读薄」。
