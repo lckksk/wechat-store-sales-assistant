@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-金句卡统一渲染模板（鲸默读书）v2
+金句卡统一渲染模板（鲸默阅读）v2
 用法：
   python quote_card.py --quote "金句内容" --source "出处" --out 输出.png [--theme warm] [--tag "底部小字"]
 尺寸 1242x1660（3:4），适配公众号小绿书。
@@ -252,7 +252,7 @@ def render_warm(quote, source, out, tag="每天读一点 · 把书读薄"):
     cx = W // 2
     # 顶部品牌 + 波浪线
     f_brand = ImageFont.truetype(F_SMALL, 34)
-    spaced(d, cx, 128, "鲸默读书", f_brand, T["ink"], gap=16)
+    spaced(d, cx, 128, "鲸默阅读", f_brand, T["ink"], gap=16)
     draw_wavy(d, cx, 208, 78, T)
 
     # 正文 + 出处
@@ -281,7 +281,7 @@ def render(quote, source, out, theme="cream", tag="每天读一点 · 把书读�
     cx = W // 2
 
     f_brand = ImageFont.truetype(F_SMALL, 34)
-    spaced(d, cx, 130, "鲸默读书", f_brand, T["ink"], gap=16)
+    spaced(d, cx, 130, "鲸默阅读", f_brand, T["ink"], gap=16)
     d.line([cx - 60, 200, cx + 60, 200], fill=T["accent"], width=2)
 
     draw_text_block(d, img, quote, source, T)
