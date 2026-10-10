@@ -136,6 +136,37 @@ focus 后执行：
 
 选品广场 → 片段 5 搜索「书名 作者」→ 片段 1 点「搜索」→ 片段 4 以「月销」为锚切片 → 每店一行：店铺 | 价格 | 佣金 | 标识 | 月销 | 评分 → 按「佣金率 × 价格可信度（到手价是否 Publishers 定价）× 月销量」推荐。
 
-## C. 类目热销榜
+**坑：目标店铺在商品搜索里排序波动极大**。同一店铺时隔半小时再搜可能翻 6+ 屏都找不到（推荐序和高佣序都如此）。解法：**直接按店铺名搜索**（搜索框支持检索店铺，placeholder 明示「可通过关键词检索店铺、商品」）——搜「合月同行」直接命中其全部在联盟商品，一次到位。
+
+## C. 加橱窗（写操作，先请示）
+
+选品广场找到目标卡片（店铺名搜索最快）→ 用 TreeWalker 从「店铺名」文本节点向上找卡片容器（特征：同时含「到手价」和「加橱窗」且长度 <600 字符）→ 在容器内点「加橱窗」→ 验证按钮文字变「已添加」。若弹「投流佣金说明」确认框，需再点「我已阅读并同意」。最终去橱窗管理页确认商品数 +1。
+
+```js
+// 卡片定位 + 点击（已验证可用的完整逻辑）
+(() => {
+  const sr = document.querySelector('micro-app').shadowRoot;
+  const w = document.createTreeWalker(sr, NodeFilter.SHOW_TEXT);
+  let n, storeEl = null;
+  while (n = w.nextNode()) { if (n.textContent.trim() === '店铺名') { storeEl = n.parentElement; break; } }
+  if (!storeEl) return 'store not found';
+  let card = storeEl;
+  for (let i = 0; i < 12; i++) {
+    if (card.parentElement && card.textContent.indexOf('加橱窗') >= 0
+        && card.textContent.indexOf('到手价') >= 0 && card.textContent.length < 600) break;
+    card = card.parentElement;
+    if (!card) return 'card boundary lost';
+  }
+  const btns = [];
+  const w2 = document.createTreeWalker(card, NodeFilter.SHOW_TEXT);
+  let m;
+  while (m = w2.nextNode()) { if (m.textContent.trim() === '加橱窗') btns.push(m.parentElement); }
+  if (!btns.length) return 'no button';
+  btns[0].click();
+  return 'clicked';
+})()
+```
+
+## D. 类目热销榜
 
 选品广场 → 点「更多」展开 → 点类目 → 排序选「热销优先」→ 翻页滚动 + 片段 4 切片。
