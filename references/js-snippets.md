@@ -170,3 +170,12 @@ focus 后执行：
 ## D. 类目热销榜
 
 选品广场 → 点「更多」展开 → 点类目 → 排序选「热销优先」→ 翻页滚动 + 片段 4 切片。
+
+## 8. 文件上传（mp 后台传图等场景）
+
+- `upload <selector> <files...>` 可传多个文件；**只支持纯 CSS 选择器**，`>> nth=1` 会报 CDP 错误
+- 页面上的 `input[type=file]` 多为隐藏且可能有多个——先用 eval 打印每个 input 的父链定位唯一容器，再写精确 CSS 选择器，如 `div.weui-desktop-upload input[type=file]`
+- 传完验证：数 `img[src*=mmbiz]` 数量 / 确认占位文案消失
+- mp 后台（mp.weixin.qq.com）与小店后台同理：页面无 micro-app，直接 document 查询；token 在 URL 里，登录过期后换新 token 重开即可
+
+> 小绿书草稿批量创建 + 配图上传的完整流程（登录/token/注入/保存/规格/死路清单）见 `references/mp-draftbox.md`。
