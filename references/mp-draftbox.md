@@ -148,3 +148,44 @@ fetch('/cgi-bin/appmsg?action=list_ex&begin=0&count=15&type=77&token=' + TOKEN +
 - ✅ **小绿书图文有定时发表功能**（2026-10-12 用户实测找到并使用）。早前「只有发表按钮、无定时发布」的结论作废
 - 发布时间策略：可用定时发表把稿子排到**晚 20:00–21:30 主档**；紧急/热点稿仍可即点即发
 - 发表后手机端预览仍可能发现问题（如重复图），**发表前用手机预览一遍是最后一道人工关卡**
+
+## Playwright 直驱灌稿（2026-10-18 实战，agent-browser 退役后的标准流程）
+
+脚本模式：`mp_data/mp_fill_batch2.js`（WorkBuddy 工作区）。登录态复用 mp-storage.json（失效跑 mp_connect_v1 扫码）。
+
+**贴图编辑器（type=77）DOM 结构**：
+- 入口：后台首页点「贴图」文字入口 → 新标签页打开编辑器
+- **标题和正文都是 `.ProseMirror`**：可见的前两个 = 标题（placeholder「请在这里输入标题」）+ 正文。同页的 `textarea.js_title` 是隐藏的文章面板元素，**不可用**（会报 not visible 超时）
+- 填充：`locator('.ProseMirror:visible')` → nth(0)=标题、nth(1)=正文 → click 后 `keyboard.insertText()`，正文段落用 `\n\n` 分隔
+- 底部按钮「保存为草稿」直接可点；「我知道了」引导弹窗先关
+
+**已踩的坑**：
+1. **首页「近期草稿」显示位有限（约 7 条），不能作为入库验证依据**——批量灌稿后最早的会被挤出显示。验证必须进「全部草稿」列表页搜标题
+2. **第一次保存可能静默失败**（内容已填、按钮已点、无报错，但草稿箱没有）——每篇保存后必须在「全部草稿」列表验证，缺哪篇单独补灌哪篇（补灌脚本 mp_fill_11.js 模式：保存后等 5s 检查确认弹窗再等 6s）
+3. 小绿书贴图标题上限 **20 字**（标题框计数 0/20），文案标题要控制在 20 字内
+4. 标签直接写进正文末尾（`#标签1 #标签2`），后台自动转话题链接
+
+## HTML 粘贴法（2026-10-18 二次迭代，替代 insertText）
+
+`keyboard.insertText` 纯文本灌稿的三个缺陷：① `\n` 被 ProseMirror 吞掉（全文无分段）② 无粗体 ③ `#标签` 纯文本不会转成话题组件。
+
+**正确做法——模拟剪贴板粘贴 HTML**：
+```js
+await pms.nth(1).click();
+await editor.evaluate((html) => {
+  const dt = new DataTransfer();
+  dt.setData('text/html', html);
+  const ev = new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true });
+  document.activeElement.dispatchEvent(ev);
+}, html);
+```
+- 正文构造：每段 `<p>…</p>`，关键句 `<strong>` 包裹（**注意：小绿书贴图正文 schema 不支持粗体，strong 会被过滤**——平台限制，不是脚本问题；视觉突出靠方法卡图）
+- 效果：分段 ✓、**话题自动变蓝可点击** ✓（后台对粘贴内容自动转换 #话题）
+
+**验证草稿是否入库**：首页「近期草稿」显示位有限且点击「全部草稿」文字入口可能不跳转，**不可靠**。标准验证 = 直接 fetch 草稿列表 API：
+`GET /cgi-bin/appmsg?action=list_ex&begin=0&count=20&type=77&token=<token>&lang=zh_CN&f=json`
+返回 app_msg_list（含 title/appmsgid/update_time），按 update_time 精确区分新旧稿。
+
+**大坑：编辑器自动保存幽灵稿**——打开编辑器填了内容但中途放弃（未点保存），后台可能自动存出草稿，且存在 title 与 content 错乱的情况（实测出现过 title=A 文、content=B 文）。清理时按 update_time 辨认，正文必须抽查。
+
+标题上限 20 字；标签写进正文末尾由后台转话题。
